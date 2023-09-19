@@ -1,6 +1,7 @@
 from torch.autograd import Variable
 import torch
 import numpy as np
+import argparse
 
 def fit_norm_distribution_param(args, model, train_dataset, channel_idx=0):
     predictions = []
@@ -11,7 +12,7 @@ def fit_norm_distribution_param(args, model, train_dataset, channel_idx=0):
         model.eval()
         pasthidden = model.init_hidden(1)
         for t in range(len(train_dataset)):
-            out, hidden = model.forward(train_dataset[t].unsqueeze(0), pasthidden)
+            out, hidden = model.forward(train_dataset[t].unsqueeze(0), pasthidden) #某一时刻作为输入
             predictions.append([])
             organized.append([])
             errors.append([])

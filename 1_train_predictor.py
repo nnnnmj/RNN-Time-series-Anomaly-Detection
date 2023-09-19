@@ -70,13 +70,15 @@ torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
 
 ###############################################################################
-# Load data
+# Load data        ########           data shape [timestamp, feature]         #
 ###############################################################################
 TimeseriesData = preprocess_data.PickleDataLoad(data_type=args.data, filename=args.filename,
                                                 augment_test_data=args.augment)
 train_dataset = TimeseriesData.batchify(args,TimeseriesData.trainData, args.batch_size)
 test_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, args.eval_batch_size)
 gen_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, 1)
+
+### TimeseriesData 返回point和label的组合，point已经standardlized
 
 
 ###############################################################################
@@ -190,7 +192,7 @@ def evaluate_1step_pred(args, model, test_dataset):
             inputSeq, targetSeq = get_batch(args,test_dataset, i)
             outSeq, hidden = model.forward(inputSeq, hidden)
 
-            loss = criterion(outSeq.view(args.batch_size,-1), targetSeq.view(args.batch_size,-1))
+            loss = criterion(outSeq.reshape(args.batch_size,-1), targetSeq.reshape(args.batch_size,-1))
             hidden = model.repackage_hidden(hidden)
             total_loss+= loss.item()
 
@@ -225,14 +227,14 @@ def train(args, model, train_dataset,epoch):
                 hids1.append(hid)
             outSeq1 = torch.cat(outVals,dim=0)
             hids1 = torch.cat(hids1,dim=0)
-            loss1 = criterion(outSeq1.view(args.batch_size,-1), targetSeq.view(args.batch_size,-1))
+            loss1 = criterion(outSeq1.reshape(args.batch_size,-1), targetSeq.reshape(args.batch_size,-1))
 
             '''Loss2: Teacher forcing loss'''
             outSeq2, hidden, hids2 = model.forward(inputSeq, hidden, return_hiddens=True)
-            loss2 = criterion(outSeq2.view(args.batch_size, -1), targetSeq.view(args.batch_size, -1))
+            loss2 = criterion(outSeq2.reshape(args.batch_size, -1), targetSeq.reshape(args.batch_size, -1))
 
             '''Loss3: Simplified Professor forcing loss'''
-            loss3 = criterion(hids1.view(args.batch_size,-1), hids2.view(args.batch_size,-1).detach())
+            loss3 = criterion(hids1.reshape(args.batch_size,-1), hids2.reshape(args.batch_size,-1).detach())
 
             '''Total loss = Loss1+Loss2+Loss3'''
             loss = loss1+loss2+loss3
@@ -276,14 +278,14 @@ def evaluate(args, model, test_dataset):
                 hids1.append(hid)
             outSeq1 = torch.cat(outVals,dim=0)
             hids1 = torch.cat(hids1,dim=0)
-            loss1 = criterion(outSeq1.view(args.batch_size,-1), targetSeq.view(args.batch_size,-1))
+            loss1 = criterion(outSeq1.reshape(args.batch_size,-1), targetSeq.reshape(args.batch_size,-1))
 
             '''Loss2: Teacher forcing loss'''
             outSeq2, hidden, hids2 = model.forward(inputSeq, hidden, return_hiddens=True)
-            loss2 = criterion(outSeq2.view(args.batch_size, -1), targetSeq.view(args.batch_size, -1))
+            loss2 = criterion(outSeq2.reshape(args.batch_size, -1), targetSeq.reshape(args.batch_size, -1))
 
             '''Loss3: Simplified Professor forcing loss'''
-            loss3 = criterion(hids1.view(args.batch_size,-1), hids2.view(args.batch_size,-1).detach())
+            loss3 = criterion(hids1.reshape(args.batch_size,-1), hids2.reshape(args.batch_size,-1).detach())
 
             '''Total loss = Loss1+Loss2+Loss3'''
             loss = loss1+loss2+loss3

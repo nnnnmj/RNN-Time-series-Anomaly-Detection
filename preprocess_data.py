@@ -8,6 +8,11 @@ import shutil
 from pathlib import Path
 import pickle
 
+################################################################
+###### 解压pkl文件，分成数据和标签，标准化数据，多生成一些测试数据  ######
+################################################################
+
+
 def normalization(seqData,max,min):
     return (seqData -min)/(max-min)
 
